@@ -2,14 +2,18 @@
 // Corentin Smith 2012
 
 // A few definitions
-var width = 199,
-    height = 399,
+var numCols = 11,
+    numRows = 20,
+
+    tileSize = 20,
+
+    width = numCols*tileSize - 1,
+    height = numRows*tileSize - 1,
 
     canvas = document.getElementById('canvas'),
 
     context = canvas.getContext('2d'),
 
-    tileSize = 20,
 
     frame = 0;
 
@@ -58,7 +62,9 @@ function init() {
 function gameLoop() {
     if (frame % 10 === 0) {
         shape.moveDown();
-
+        if (!shape.canMoveDown) {
+            shape.persist();
+        }
     }
     clearCanvas();
     drawField();
@@ -73,22 +79,23 @@ function gameLoop() {
 // Main game array
 // 20 rows * 10 cols
 // access via field[col][row]
-var field = new Array(10);
-    for (var i = 0; i < 10; i++) {
-        field[i] = new Array(20);
+var field = new Array(numCols);
+
+for (var i = 0; i < numCols; i++) {
+    field[i] = new Array(numRows);
 };
 
 function clearField() {
-    for (var i = 0; i<10; i++) {
-        for (var j = 0; j<20; j++) {
+    for (var i = 0; i<numCols; i++) {
+        for (var j = 0; j<numRows; j++) {
             field[i][j] = '#333';
         }
     }
 };
 
 function drawField() {
-    for (var i = 0; i<10; i++) {
-        for (var j = 0; j<20; j++) {
+    for (var i = 0; i<numCols; i++) {
+        for (var j = 0; j<numRows; j++) {
             // draw every tile
             context.fillStyle = field[i][j];
             context.fillRect(i*tileSize, j*tileSize, tileSize-1, tileSize-1);
@@ -177,7 +184,7 @@ function Tetrimino() {
     that.orientation = 0;
 
     // tile position
-    that.x = 0;
+    that.x = 3;
     that.y = 0;
 
     that.draw = function(col, row) {
@@ -187,26 +194,59 @@ function Tetrimino() {
                 context.fillStyle = that.color;
                 // draw based on arrayShape
                 if (that.arrayShape[c][r] == 1) {
-                    context.fillRect(that.x*tileSize + r*tileSize, that.y*tileSize + c*tileSize,
-                        tileSize-1, tileSize-1);
+                    context.fillRect(that.x*tileSize + r*tileSize, 
+                        that.y*tileSize + c*tileSize, tileSize-1, tileSize-1);
                 }
             }
         }
     };
 
     that.canMoveDown = function() {
-        // collision detection
-        return true;
+        var yes = true;
+
+        for (var r = 0; r<4; r++) {
+            for (var c = 0; c<4; c++) {
+                if (that.arrayShape[c][r] == 1) {
+                    if (that.y + c + 2 > numRows) {
+                        yes = false;
+                    }
+                }
+            }
+        }
+
+        return yes;
     };
 
     that.canMoveLeft = function() {
-        // collision detection
-        return true;
+        var yes = true;
+
+        for (var r = 0; r<4; r++) {
+            for (var c = 0; c<4; c++) {
+                if (that.arrayShape[c][r] == 1) {
+                    if (that.x + r - 1 < 0) {
+                        yes = false;
+                    }
+                }
+            }
+        }
+
+        return yes;
     };
 
     that.canMoveRight = function() {
-        // collision detection
-        return true;
+        var yes = true;
+
+        for (var r = 0; r<4; r++) {
+            for (var c = 0; c<4; c++) {
+                if (that.arrayShape[c][r] == 1) {
+                    if (that.x + r + 2 > numCols) {
+                        yes = false;
+                    }
+                }
+            }
+        }
+
+        return yes;
     };
 
     that.moveDown = function() {
@@ -230,6 +270,16 @@ function Tetrimino() {
     that.turn = function() {
 
     };
+
+    that.persist = function() {
+        for (var r = 0; r<4; r++) {
+            for (var c = 0; c<4; c++) {
+                if (that.arrayShape[c][r] == 1) {
+                    field[r + that.x][c + that.y] = that.color;
+                }
+            }
+        }
+    }
 };
 
 

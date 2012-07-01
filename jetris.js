@@ -2,8 +2,8 @@
 // Corentin Smith 2012
 
 // A few definitions
-var numCols = 15,
-    numRows = 25,
+var numCols = 7,
+    numRows = 10,
 
     tileSize = 20,
 
@@ -14,9 +14,15 @@ var numCols = 15,
 
     context = canvas.getContext('2d'),
 
-    empty = "#333",
+    empty = "#333", // background color
 
-    frame = 0;
+    speed = 10, // lower is faster
+
+    frame = 0,
+
+    shapeOnTheGround = false,
+
+    field = new Field();
 
 // Setting up canvas
 canvas.width = width;
@@ -48,7 +54,7 @@ window.requestAnimFrame = (function(){
 // Initializing
 function init() {
     clearCanvas();
-    clearField();
+    field.clear();
 
     // ajoute le support du clavier
     document.addEventListener("keydown", keyDownMove, false);
@@ -61,52 +67,82 @@ function init() {
 
 // Main game function
 function gameLoop() {
-    if (frame % 10 === 0) {
+    if (frame % speed === 0) {
         shape.moveDown();
         if (!shape.canMoveDown()) {
-            shape.moveDown();
-            shape.persist();
-            delete shape;
-
-            shape = new Tetrimino();
+            shapeOnTheGround = true;
         }
     }
+
+    frame++;
+
+    if (frame % speed === 0 && shapeOnTheGround) {
+        shape.persist();
+        delete shape;
+
+        shape = new Tetrimino();
+        shapeOnTheGround = false;
+    }
+
     clearCanvas();
-    drawField();
+    field.draw();
 
     shape.draw();
-    frame++;
     
     window.requestAnimFrame(function() { gameLoop() });
 };
 
 
 // Main game array
-// 20 rows * 10 cols
-// access via field[col][row]
-var field = new Array(numCols);
+// access via field.array[row][col]
+function Field() {
+    var that = this;
 
-for (var i = 0; i < numCols; i++) {
-    field[i] = new Array(numRows);
+    that.array = new Array(numRows); // rows
+
+    for (var i = 0; i < numRows; i++) { // cols
+        that.array[i] = new Array(numCols);
+    };
+
+    that.clear = function() {
+        for (var i = 0; i<numRows; i++) {
+            for (var j = 0; j<numCols; j++) {
+                that.array[i][j] = empty;
+            };
+        };
+    };
+
+    that.draw = function() {
+        for (var i = 0; i<numRows; i++) {
+            for (var j = 0; j<numCols; j++) {
+                // draw every tile
+                context.fillStyle = that.array[i][j];
+                context.fillRect(j*tileSize, i*tileSize, tileSize-1, tileSize-1);
+            };
+        };
+    };
+
+    that.hasFullRows = function() {
+        var fullRows = [];
+
+        function isFull(row) {
+            var full = true;
+
+            for (var i=0; i<row.length; row++) {
+                if (row[i] == empty) full = false; // if one is empty then the row isn't full
+            };
+
+            return full;
+        };
+
+        for (var r=0; r<numRows; r++) {
+            if (isFull(that.array[r])) 
+                fullRows.push(r);
+        };
+        return fullRows;
+    };
 };
 
-function clearField() {
-    for (var i = 0; i<numCols; i++) {
-        for (var j = 0; j<numRows; j++) {
-            field[i][j] = empty;
-        }
-    }
-};
-
-function drawField() {
-    for (var i = 0; i<numCols; i++) {
-        for (var j = 0; j<numRows; j++) {
-            // draw every tile
-            context.fillStyle = field[i][j];
-            context.fillRect(i*tileSize, j*tileSize, tileSize-1, tileSize-1);
-        }
-    }
-};
 
 // Tetrimino class
 // type = I, J, L, O, S, T, Z
@@ -193,8 +229,8 @@ function Tetrimino() {
     that.y = -1;
 
     that.draw = function(col, row) {
-        for (var c = 0; c<4; c++) {
-            for (var r = 0; r<4; r++) {
+        for (var r = 0; r<4; r++) {
+            for (var c = 0; c<4; c++) {
                 // select right color
                 context.fillStyle = that.color;
                 // draw based on arrayShape
@@ -209,10 +245,10 @@ function Tetrimino() {
     that.canMoveDown = function() {
         var yes = true;
 
-        for (var c = 0; c<4; c++) {
-            for (var r = 0; r<4; r++) {
+        for (var r = 0; r<4; r++) {
+            for (var c = 0; c<4; c++) {
                 if (that.arrayShape[r][c] == 1) {
-                    if (that.y + r + 1 >= numRows || field[that.x + c][that.y + r + 1] != empty) {
+                    if (that.y + r + 1 >= numRows || field.array[that.y + r + 1][that.x + c] != empty) {
                         yes = false;
                     }
                 }
@@ -225,10 +261,10 @@ function Tetrimino() {
     that.canMoveLeft = function() {
         var yes = true;
 
-        for (var c = 0; c<4; c++) {
-            for (var r = 0; r<4; r++) {
+        for (var r = 0; r<4; r++) {
+            for (var c = 0; c<4; c++) {
                 if (that.arrayShape[r][c] == 1) {
-                    if (that.x + c - 1 < 0 || field[that.x + c - 1][that.y + r] != empty) {
+                    if (that.x + c - 1 < 0 || field.array[that.y + r][that.x + c - 1] != empty) {
                         yes = false;
                     }
                 }
@@ -244,7 +280,7 @@ function Tetrimino() {
         for (var c = 0; c<4; c++) {
             for (var r = 0; r<4; r++) {
                 if (that.arrayShape[r][c] == 1) {
-                    if (that.x + c + 2 > numCols || field[that.x + c + 1][that.y + r] != empty) {
+                    if (that.x + c + 2 > numCols || field.array[that.y + r][that.x + c + 1] != empty) {
                         yes = false;
                     }
                 }
@@ -287,12 +323,12 @@ function Tetrimino() {
         that.arrayShape = turnedShape;
     };
 
-    // write the tetrimino to the field when it can't move anymore
+    // write the tetrimino to the field.array when it can't move anymore
     that.persist = function() {
-        for (var c = 0; c<4; c++) {
-            for (var r = 0; r<4; r++) {
-                if (that.arrayShape[r][c] == 1) {
-                    field[c + that.x][r + that.y] = that.color;
+        for (var r = 0; r<4; r++) {
+            for (var c = 0; c<4; c++) {
+                if (that.arrayShape[r][c] == 1 && r >= 0 && c >= 0) {
+                    field.array[r + that.y][c + that.x] = that.color;
                 }
             }
         }

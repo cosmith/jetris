@@ -3,7 +3,7 @@
 
 // A few definitions
 var numCols = 7,
-    numRows = 10,
+    numRows = 20,
 
     tileSize = 20,
 
@@ -67,6 +67,7 @@ function init() {
 
 // Main game function
 function gameLoop() {
+    // every (speed) frames do
     if (frame % speed === 0) {
         shape.moveDown();
         if (!shape.canMoveDown()) {
@@ -76,7 +77,7 @@ function gameLoop() {
 
     frame++;
 
-    if (frame % speed === 0 && shapeOnTheGround) {
+    if (frame % speed === 0 && shapeOnTheGround && !shape.canMoveDown()) {
         shape.persist();
         delete shape;
 
@@ -140,6 +141,21 @@ function Field() {
                 fullRows.push(r);
         };
         return fullRows;
+    };
+
+    that.deleteRow = function(fullRow) {
+        if (fullRow === 0) {
+            for (var c = 0; c < fullRow; c++) {
+                that.array[0][c] = empty;
+            }
+        }
+        else {
+            for (var row = fullRow; row > 0; row--) { // start from the bottom
+                for (var c = 0; c < numCols; c++) {
+                    that.array[row][c] = that.array[row - 1][c]; // copy row above
+                }
+            }
+        }
     };
 };
 
@@ -225,7 +241,7 @@ function Tetrimino() {
     that.orientation = 0;
 
     // tile position
-    that.x = ~~(numCols / 2);
+    that.x = ~~(numCols / 2)-2;
     that.y = -1;
 
     that.draw = function(col, row) {
@@ -245,15 +261,17 @@ function Tetrimino() {
     that.canMoveDown = function() {
         var yes = true;
 
-        for (var r = 0; r<4; r++) {
-            for (var c = 0; c<4; c++) {
-                if (that.arrayShape[r][c] == 1) {
-                    if (that.y + r + 1 >= numRows || field.array[that.y + r + 1][that.x + c] != empty) {
-                        yes = false;
+        if (that.y >= 0) {
+            for (var r = 0; r<4; r++) {
+                for (var c = 0; c<4; c++) {
+                    if (that.arrayShape[r][c] == 1) {
+                        if (that.y + r + 1 >= numRows || field.array[that.y + r + 1][that.x + c] != empty) {
+                            yes = false;
+                        }
                     }
                 }
             }
-        }
+        } 
 
         return yes;
     };

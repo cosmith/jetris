@@ -103,14 +103,14 @@ function Field() {
 
     for (var i = 0; i < numRows; i++) { // cols
         that.array[i] = new Array(numCols);
-    };
+    }
 
     that.clear = function() {
         for (var i = 0; i<numRows; i++) {
             for (var j = 0; j<numCols; j++) {
                 that.array[i][j] = empty;
-            };
-        };
+            }
+        }
     };
 
     that.draw = function() {
@@ -119,8 +119,8 @@ function Field() {
                 // draw every tile
                 context.fillStyle = that.array[i][j];
                 context.fillRect(j*tileSize, i*tileSize, tileSize-1, tileSize-1);
-            };
-        };
+            }
+        }
     };
 
     that.hasFullRows = function() {
@@ -131,7 +131,7 @@ function Field() {
 
             for (var i=0; i<row.length; row++) {
                 if (row[i] == empty) full = false; // if one is empty then the row isn't full
-            };
+            }
 
             return full;
         };
@@ -139,7 +139,7 @@ function Field() {
         for (var r=0; r<numRows; r++) {
             if (isFull(that.array[r])) 
                 fullRows.push(r);
-        };
+        }
         return fullRows;
     };
 
@@ -215,10 +215,7 @@ function Tetrimino() {
 
         default:
             that.arrayShape = 
-               [[1, 0, 0, 1],
-                [0, 1, 1, 0],
-                [0, 1, 1, 0],
-                [1, 0, 0, 1]];
+               [[1]];
         break;
     };
 
@@ -315,19 +312,24 @@ function Tetrimino() {
         }
     };
 
-    that.turn = function() {
-        /*turnedShape =  [[0, 0, 0, 0],
-                        [0, 0, 0, 0],
-                        [0, 0, 0, 0],
-                        [0, 0, 0, 0]];
+    that.rotate = function() {
+        rotated = new Array(that.arrayWidth);
 
-        for (var c = 0; c<4; c++) {
-            for (var r = 0; r<4; r++) {
-                turnedShape[r][c] = that.arrayShape[c][r];
+        for (var i = 0; i < that.arrayWidth; i++) {
+            rotated[i] = new Array(that.arrayHeight);
+        }
+
+        for (var r = 0; r < that.arrayHeight; r++) {
+            for (var c = 0; c < that.arrayWidth; c++) {
+                rotated[c][that.arrayHeight-1-r] = that.arrayShape[r][c];
             }
         }
 
-        that.arrayShape = turnedShape;*/
+        that.arrayShape = rotated;
+
+        // update the tile size
+        that.arrayWidth = that.arrayShape[0].length;
+        that.arrayHeight = that.arrayShape.length;
     };
 
     // write the tetrimino to the field.array when it can't move anymore
@@ -339,7 +341,7 @@ function Tetrimino() {
                 }
             }
         }
-    }
+    };
 };
 
 
@@ -353,7 +355,7 @@ function keyDownMove(e) {
         case 39: shape.moveRight();
         break;
     
-        case 38: shape.turn();
+        case 38: shape.rotate();
         break;
     
         case 40: shape.moveDown();

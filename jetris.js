@@ -172,59 +172,44 @@ function Tetrimino() {
         case 'I': 
             that.color = "#5CCBE2";
             that.arrayShape = 
-               [[1, 1, 1, 1],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0]];
+               [[1, 1, 1, 1]];
         break;
         case 'J': 
             that.color = "#0000FF";
             that.arrayShape = 
-               [[1, 1, 1, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0]];
+               [[1, 1, 1],
+                [0, 0, 1]];
         break;
         case 'L': 
             that.color = "#FF8040";
             that.arrayShape = 
-               [[0, 0, 1, 0],
-                [1, 1, 1, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0]];
+               [[0, 0, 1],
+                [1, 1, 1]];
         break;
         case 'S': 
             that.color = "#00EA00";
             that.arrayShape = 
-               [[0, 1, 1, 0],
-                [1, 1, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0]];
+               [[0, 1, 1],
+                [1, 1, 0]];
         break;
         case 'T': 
             that.color = "#800080";
             that.arrayShape = 
-               [[1, 1, 1, 0],
-                [0, 1, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0]];
+               [[1, 1, 1],
+                [0, 1, 0]];
         break;
         case 'Z': 
             that.color = "#C60000";
             that.arrayShape = 
-               [[1, 1, 0, 0],
-                [0, 1, 1, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0]];
+               [[1, 1, 0],
+                [0, 1, 1]];
         break;
 
         case 'O': 
             that.color = "#F2F200";
             that.arrayShape = 
-               [[1, 1, 0, 0],
-                [1, 1, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0]];
+               [[1, 1],
+                [1, 1]];
         break;
 
 
@@ -237,6 +222,10 @@ function Tetrimino() {
         break;
     };
 
+    // tile size
+    that.arrayWidth = that.arrayShape[0].length;
+    that.arrayHeight = that.arrayShape.length;
+
     // tile orientation = 0, 1, 2, 3
     that.orientation = 0;
 
@@ -245,8 +234,8 @@ function Tetrimino() {
     that.y = -1;
 
     that.draw = function(col, row) {
-        for (var r = 0; r<4; r++) {
-            for (var c = 0; c<4; c++) {
+        for (var r = 0; r < that.arrayHeight; r++) {
+            for (var c = 0; c < that.arrayWidth; c++) {
                 // select right color
                 context.fillStyle = that.color;
                 // draw based on arrayShape
@@ -262,8 +251,8 @@ function Tetrimino() {
         var yes = true;
 
         if (that.y >= 0) {
-            for (var r = 0; r<4; r++) {
-                for (var c = 0; c<4; c++) {
+        for (var r = 0; r < that.arrayHeight; r++) {
+            for (var c = 0; c < that.arrayWidth; c++) {
                     if (that.arrayShape[r][c] == 1) {
                         if (that.y + r + 1 >= numRows || field.array[that.y + r + 1][that.x + c] != empty) {
                             yes = false;
@@ -279,8 +268,8 @@ function Tetrimino() {
     that.canMoveLeft = function() {
         var yes = true;
 
-        for (var r = 0; r<4; r++) {
-            for (var c = 0; c<4; c++) {
+        for (var r = 0; r < that.arrayHeight; r++) {
+            for (var c = 0; c < that.arrayWidth; c++) {
                 if (that.arrayShape[r][c] == 1) {
                     if (that.x + c - 1 < 0 || field.array[that.y + r][that.x + c - 1] != empty) {
                         yes = false;
@@ -295,8 +284,8 @@ function Tetrimino() {
     that.canMoveRight = function() {
         var yes = true;
 
-        for (var c = 0; c<4; c++) {
-            for (var r = 0; r<4; r++) {
+        for (var r = 0; r < that.arrayHeight; r++) {
+            for (var c = 0; c < that.arrayWidth; c++) {
                 if (that.arrayShape[r][c] == 1) {
                     if (that.x + c + 2 > numCols || field.array[that.y + r][that.x + c + 1] != empty) {
                         yes = false;
@@ -327,7 +316,7 @@ function Tetrimino() {
     };
 
     that.turn = function() {
-        turnedShape =  [[0, 0, 0, 0],
+        /*turnedShape =  [[0, 0, 0, 0],
                         [0, 0, 0, 0],
                         [0, 0, 0, 0],
                         [0, 0, 0, 0]];
@@ -338,13 +327,13 @@ function Tetrimino() {
             }
         }
 
-        that.arrayShape = turnedShape;
+        that.arrayShape = turnedShape;*/
     };
 
     // write the tetrimino to the field.array when it can't move anymore
     that.persist = function() {
-        for (var r = 0; r<4; r++) {
-            for (var c = 0; c<4; c++) {
+        for (var r = 0; r < that.arrayHeight; r++) {
+            for (var c = 0; c < that.arrayWidth; c++) {
                 if (that.arrayShape[r][c] == 1 && r >= 0 && c >= 0) {
                     field.array[r + that.y][c + that.x] = that.color;
                 }

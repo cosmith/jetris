@@ -14,7 +14,7 @@ var numCols = 11,
 
     context = canvas.getContext('2d'),
 
-    empty = "#333", // background color
+    empty = "#073642", // background color
 
     speed = 10, // lower is faster
 
@@ -31,7 +31,7 @@ canvas.height = height;
 function clearCanvas() {
     canvas.width = canvas.width;
 
-    context.fillStyle = 'black';
+    context.fillStyle = "#002b36";
 
     context.fillRect(0, 0, width, height);
 };
@@ -198,43 +198,43 @@ function Tetrimino() {
     
     switch (that.shape) {
         case 'I': 
-            that.color = "#5CCBE2";
+            that.color = "#859900";
             that.arrayShape = 
                [[1, 1, 1, 1]];
         break;
         case 'J': 
-            that.color = "#6F4FF0";
+            that.color = "#cb4b16";
             that.arrayShape = 
                [[1, 1, 1],
                 [0, 0, 1]];
         break;
         case 'L': 
-            that.color = "#FF8040";
+            that.color = "#dc322f";
             that.arrayShape = 
                [[0, 0, 1],
                 [1, 1, 1]];
         break;
         case 'S': 
-            that.color = "#00EA00";
+            that.color = "#d33682";
             that.arrayShape = 
                [[0, 1, 1],
                 [1, 1, 0]];
         break;
         case 'T': 
-            that.color = "#800080";
+            that.color = "#6c71c4";
             that.arrayShape = 
                [[1, 1, 1],
                 [0, 1, 0]];
         break;
         case 'Z': 
-            that.color = "#FF2828";
+            that.color = "#268bd2";
             that.arrayShape = 
                [[1, 1, 0],
                 [0, 1, 1]];
         break;
 
         case 'O': 
-            that.color = "#F2F200";
+            that.color = "#2aa198";
             that.arrayShape = 
                [[1, 1],
                 [1, 1]];

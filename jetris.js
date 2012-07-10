@@ -2,13 +2,13 @@
 // Corentin Smith 2012
 
 // A few definitions
-var numCols = 7,
+var numCols = 11,
     numRows = 20,
 
-    tileSize = 20,
+    tileSize = 18,
 
-    width = numCols*tileSize - 1,
-    height = numRows*tileSize - 1,
+    width = numCols*tileSize,
+    height = numRows*tileSize,
 
     canvas = document.getElementById('canvas'),
 
@@ -67,7 +67,7 @@ function init() {
 
 // Main game function
 function gameLoop() {
-    // every (speed) frames do
+    // every (speed) frames move the shape down
     if (frame % speed === 0) {
         shape.moveDown();
         if (!shape.canMoveDown()) {
@@ -77,6 +77,7 @@ function gameLoop() {
 
     frame++;
 
+    // after (speed) more frames, persist the shape on the ground 
     if (frame % speed === 0 && shapeOnTheGround && !shape.canMoveDown()) {
         shape.persist();
         delete shape;
@@ -88,11 +89,29 @@ function gameLoop() {
     clearCanvas();
     field.draw();
 
+    field.deleteFullRows();
+
     shape.draw();
     
     window.requestAnimFrame(function() { gameLoop() });
 };
 
+function drawCircle(top, left, radius, color) {
+ 
+    context.fillStyle = empty;
+
+    context.beginPath();
+    context.arc(top + radius, left + radius, radius, 0, 7, true); 
+    context.closePath();
+    context.fill();
+
+    context.fillStyle = color;
+
+    context.beginPath();
+    context.arc(top + radius - 1, left + radius - 1, radius-1, 0, 7, true); 
+    context.closePath();
+    context.fill();
+}
 
 // Main game array
 // access via field.array[row][col]
@@ -116,27 +135,28 @@ function Field() {
     that.draw = function() {
         for (var i = 0; i<numRows; i++) {
             for (var j = 0; j<numCols; j++) {
-                // draw every tile
-                context.fillStyle = that.array[i][j];
-                context.fillRect(j*tileSize, i*tileSize, tileSize-1, tileSize-1);
+                if (that.array[i][j] != empty) 
+                    // draw every tile
+                    drawCircle(j*tileSize, i*tileSize, tileSize/2, that.array[i][j]);
             }
         }
     };
 
-    that.hasFullRows = function() {
+    that.fullRowsList = function() {
         var fullRows = [];
 
         function isFull(row) {
-            var full = true;
+            var i = 0;
 
-            for (var i=0; i<row.length; row++) {
-                if (row[i] == empty) full = false; // if one is empty then the row isn't full
+            // if one cell is empty the row isn't full
+            while (row[i] != empty && i < row.length) {
+                i++;
             }
 
-            return full;
+            return (i == row.length);
         };
 
-        for (var r=0; r<numRows; r++) {
+        for (var r = 0; r < numRows; r++) {
             if (isFull(that.array[r])) 
                 fullRows.push(r);
         }
@@ -157,6 +177,14 @@ function Field() {
             }
         }
     };
+
+    that.deleteFullRows = function() {
+        l = that.fullRowsList();
+
+        for (var i = 0; i < l.length; i++) {
+            that.deleteRow(l[i]);
+        }
+    };
 };
 
 
@@ -175,7 +203,7 @@ function Tetrimino() {
                [[1, 1, 1, 1]];
         break;
         case 'J': 
-            that.color = "#0000FF";
+            that.color = "#6F4FF0";
             that.arrayShape = 
                [[1, 1, 1],
                 [0, 0, 1]];
@@ -199,7 +227,7 @@ function Tetrimino() {
                 [0, 1, 0]];
         break;
         case 'Z': 
-            that.color = "#C60000";
+            that.color = "#FF2828";
             that.arrayShape = 
                [[1, 1, 0],
                 [0, 1, 1]];
@@ -227,18 +255,15 @@ function Tetrimino() {
     that.orientation = 0;
 
     // tile position
-    that.x = ~~(numCols / 2)-2;
+    that.x = ~~(numCols / 2) - 1;
     that.y = -1;
 
     that.draw = function(col, row) {
         for (var r = 0; r < that.arrayHeight; r++) {
             for (var c = 0; c < that.arrayWidth; c++) {
-                // select right color
-                context.fillStyle = that.color;
                 // draw based on arrayShape
                 if (that.arrayShape[r][c] == 1) {
-                    context.fillRect(that.x*tileSize + c*tileSize, 
-                        that.y*tileSize + r*tileSize, tileSize-1, tileSize-1);
+                    drawCircle((that.x + c)*tileSize, (that.y + r)*tileSize, tileSize/2, that.color);
                 }
             }
         }

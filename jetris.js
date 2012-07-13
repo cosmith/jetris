@@ -3,24 +3,26 @@
 
 // A few definitions
 var numCols = 11,
-    numRows = 20,
+    numRows = 18,
 
-    tileSize = 18,
+    tileSize = 25,
 
-    width = numCols*tileSize,
-    height = numRows*tileSize,
+    width  = (numCols + 6) * tileSize,
+    height = numRows * tileSize,
 
-    canvas = document.getElementById('canvas'),
+    canvas  = document.getElementById('canvas'),
 
     context = canvas.getContext('2d'),
 
     empty = "#073642", // background color
 
-    speed = 10, // lower is faster
+    speed = 30, // lower is faster
 
     frame = 0,
 
     shapeOnTheGround = false,
+
+    letters = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'],
 
     field = new Field();
 
@@ -34,7 +36,7 @@ function clearCanvas() {
     context.fillStyle = "#002b36";
 
     context.fillRect(0, 0, width, height);
-};
+}
 
 
 // Framerate definition, cross-browser style. 
@@ -47,9 +49,13 @@ window.requestAnimFrame = (function(){
            window.msRequestAnimationFrame     || // Pour Internet Explorer
            function(callback){                   // Pour les autres
                window.setTimeout(callback, 1000 / 60);
-           };
+           }
 })();
 
+// draw a letter from letters array
+function chooseShape() {
+    return letters[~~(Math.random()*7)];
+}
 
 // Initializing
 function init() {
@@ -59,10 +65,10 @@ function init() {
     // ajoute le support du clavier
     document.addEventListener("keydown", keyDownMove, false);
 
-    shape = new Tetrimino();
+    shape = new Tetrimino(chooseShape());
 
     gameLoop();
-};
+}
 
 
 // Main game function
@@ -82,7 +88,10 @@ function gameLoop() {
         shape.persist();
         delete shape;
 
-        shape = new Tetrimino();
+        letter1 = chooseShape();
+        letter2 = chooseShape();
+
+        shape = new Tetrimino(letter1);
         shapeOnTheGround = false;
     }
 
@@ -92,11 +101,13 @@ function gameLoop() {
     field.deleteFullRows();
 
     shape.draw();
+
+    drawGui();
     
     window.requestAnimFrame(function() { gameLoop() });
-};
+}
 
-function drawCircle(top, left, radius, color) {
+function drawTile(top, left, radius, color) {
  
     context.fillStyle = empty;
 
@@ -130,17 +141,17 @@ function Field() {
                 that.array[i][j] = empty;
             }
         }
-    };
+    }
 
     that.draw = function() {
         for (var i = 0; i<numRows; i++) {
             for (var j = 0; j<numCols; j++) {
                 if (that.array[i][j] != empty) 
                     // draw every tile
-                    drawCircle(j*tileSize, i*tileSize, tileSize/2, that.array[i][j]);
+                    drawTile(j*tileSize, i*tileSize, tileSize/2, that.array[i][j]);
             }
         }
-    };
+    }
 
     that.fullRowsList = function() {
         var fullRows = [];
@@ -154,14 +165,14 @@ function Field() {
             }
 
             return (i == row.length);
-        };
+        }
 
         for (var r = 0; r < numRows; r++) {
             if (isFull(that.array[r])) 
                 fullRows.push(r);
         }
         return fullRows;
-    };
+    }
 
     that.deleteRow = function(fullRow) {
         if (fullRow === 0) {
@@ -176,7 +187,7 @@ function Field() {
                 }
             }
         }
-    };
+    }
 
     that.deleteFullRows = function() {
         l = that.fullRowsList();
@@ -184,19 +195,15 @@ function Field() {
         for (var i = 0; i < l.length; i++) {
             that.deleteRow(l[i]);
         }
-    };
-};
-
+    }
+}
 
 // Tetrimino class
 // type = I, J, L, O, S, T, Z
-function Tetrimino() {
+function Tetrimino(shape) {
     var that = this;
 
-    shapes = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
-    that.shape = shapes[~~(Math.random()*7)];
-    
-    switch (that.shape) {
+    switch (shape) {
         case 'I': 
             that.color = "#859900";
             that.arrayShape = 
@@ -245,16 +252,16 @@ function Tetrimino() {
             that.arrayShape = 
                [[1]];
         break;
-    };
+    }
 
-    // tile size
+    // shape size
     that.arrayWidth = that.arrayShape[0].length;
     that.arrayHeight = that.arrayShape.length;
 
-    // tile orientation = 0, 1, 2, 3
+    // shape orientation = 0, 1, 2, 3
     that.orientation = 0;
 
-    // tile position
+    // shape position
     that.x = ~~(numCols / 2) - 1;
     that.y = -1;
 
@@ -263,11 +270,11 @@ function Tetrimino() {
             for (var c = 0; c < that.arrayWidth; c++) {
                 // draw based on arrayShape
                 if (that.arrayShape[r][c] == 1) {
-                    drawCircle((that.x + c)*tileSize, (that.y + r)*tileSize, tileSize/2, that.color);
+                    drawTile((that.x + c)*tileSize, (that.y + r)*tileSize, tileSize/2, that.color);
                 }
             }
         }
-    };
+    }
 
     that.canMoveDown = function() {
         var yes = true;
@@ -285,7 +292,7 @@ function Tetrimino() {
         } 
 
         return yes;
-    };
+    }
 
     that.canMoveLeft = function() {
         var yes = true;
@@ -301,7 +308,7 @@ function Tetrimino() {
         }
 
         return yes;
-    };
+    }
 
     that.canMoveRight = function() {
         var yes = true;
@@ -317,33 +324,45 @@ function Tetrimino() {
         }
 
         return yes;
-    };
+    }
+
+    that.canRotate = function() {
+        return ((that.x != 0 || that.arrayHeight <= 3));
+    }
 
     that.moveDown = function() {
         if (that.canMoveDown()) {
             that.y += 1;
         }
-    };
+    }
 
     that.moveRight = function() {
         if (that.canMoveRight()) {
             that.x += 1;
         }
-    };
+    }
 
     that.moveLeft = function() {
         if (that.canMoveLeft()) {
             that.x -= 1;
         }
-    };
+    }
 
     that.rotate = function() {
-        rotated = new Array(that.arrayWidth);
+        // update the tile position
+        if (that.arrayWidth > 2) that.x += 1;
+        if (that.arrayWidth < 2) that.x -= 1;
 
+        if (that.arrayHeight > 2) that.y += 1;
+        if (that.arrayHeight < 2) that.y -= 1;
+
+        // create new shape
+        rotated = new Array(that.arrayWidth);
         for (var i = 0; i < that.arrayWidth; i++) {
             rotated[i] = new Array(that.arrayHeight);
         }
 
+        // rotate
         for (var r = 0; r < that.arrayHeight; r++) {
             for (var c = 0; c < that.arrayWidth; c++) {
                 rotated[c][that.arrayHeight-1-r] = that.arrayShape[r][c];
@@ -355,7 +374,9 @@ function Tetrimino() {
         // update the tile size
         that.arrayWidth = that.arrayShape[0].length;
         that.arrayHeight = that.arrayShape.length;
-    };
+
+        
+    }
 
     // write the tetrimino to the field.array when it can't move anymore
     that.persist = function() {
@@ -366,9 +387,15 @@ function Tetrimino() {
                 }
             }
         }
-    };
-};
+    }
+}
 
+// GUI
+function drawGui() {
+    context.fillStyle = "#fdf6e3";
+
+    context.fillRect(numCols * tileSize, 0, 1, height);
+}
 
 function keyDownMove(e) {
     var key = e.keyCode;
@@ -380,12 +407,12 @@ function keyDownMove(e) {
         case 39: shape.moveRight();
         break;
     
-        case 38: shape.rotate();
+        case 38: if (shape.canRotate()) shape.rotate();
         break;
     
         case 40: shape.moveDown();
         break;
-    };
-};
+    }
+}
 
 init();

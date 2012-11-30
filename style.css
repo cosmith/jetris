@@ -4,13 +4,16 @@ body {
   font-family: "Arial Rounded MT Bold", "Consolas", "Courier New", Courier, monospace;
   text-align: center;
 }
+
 .main {
   margin: 0 auto;
   width: 500px;
 }
+
 canvas {
   border: 2px solid #002b36;
 }
+
 p {
   font-size: 0.7em;
 }
